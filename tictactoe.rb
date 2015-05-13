@@ -4,6 +4,12 @@
 # 4. Repeats until Player or Computer wins or board is full
 require 'pry'
 
+def initialize_board
+  b = {}
+  (1..9).each { |pos| b[pos] = " "}
+  b
+end
+
 def draw_board(b)
   system 'clear'
   puts "#{b[1]} | #{b[2]} | #{b[3]}"
@@ -13,49 +19,55 @@ def draw_board(b)
   puts "#{b[7]} | #{b[8]} | #{b[9]}"
 end
 
-def computer_choice(b)
-  b.select {|k, v| v == " "}.keys.sample
+def empty_spaces(b)
+  b.select {|k, v| v == " "}.keys
+end
+
+def player_move(b)
+  begin
+    puts "Choose an empty square (1-9):"
+    player_choice = gets.chomp
+    if empty_spaces(b).include?(player_choice.to_i)
+      b[player_choice.to_i] = "X"
+      return false
+    end
+  end until false
+end
+
+def computer_move(b)
+  computer_choice = empty_spaces(b).sample
+  b[computer_choice] = "O"
 end
 
 def check_winner(b)
+  win = nil
   winning_lines = [[1,2,3], [4,5,6], [7,8,9], [1,4,7], [2,5,8], [3,6,9], [1,5,9], [3,5,7]]
     winning_lines.each do |line|
       if b[line[0]] == "X" && b[line[1]] == "X" && b[line[2]] == "X"
-        return "Player"
+        win = "Player"
+        break
       elsif b[line[0]] == "O" && b[line[1]] == "O" && b[line[2]] == "O"
-        return "Computer"
+        win = "Computer"
+        break
       else
-        return nil
+        win = nil
       end
     end
+    return win
 end
 
-def board_full(b)
-  b.each do |k, v|
-    if b[k] == " "
-      return false
-    end
-  end  
-end
-
-b = {}
-(1..9).each { |pos| b[pos] = " "}
-b
+board = initialize_board
+draw_board(board)
 
 begin
-  puts "Choose a position (1-9):"
-  player_choice = gets.chomp.to_i
-  b[player_choice] = "X"
-  draw_board(b)
-  check_winner(b)
-  binding.pry
-  b[computer_choice(b)] = "O"
-  draw_board(b)
-  check_winner(b)
-end until check_winner(b) || board_full(b)
+  player_move(board)
+  computer_move(board)
+  draw_board(board)
+  winner = check_winner(board)
+end until winner || empty_spaces(board).empty?
 
-if check_winner(b)
+if winner
   puts "#{winner} won!"
-elsif board_full(b)
+else
   puts "It's a tie!"
 end
